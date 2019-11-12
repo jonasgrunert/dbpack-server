@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "*": ["types/*"] },
+    "target": "es2017",
+    "module": "umd",
+     "outDir": "./dist/",
+    "composite": true,
+    "removeComments": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "types": [
+      "./types.d.ts"
+    ],
+    "esModuleInterop": true
+  }
+}

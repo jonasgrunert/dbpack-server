@@ -11,10 +11,10 @@ import {
   DeployMessage,
   TestMessage,
 } from './Messages';
-import { createMachine } from 'statemachine';
-import { setup, getAllFromTable, executeSql, executeTest } from 'database';
+import { createMachine } from './statemachine';
+import { setup, getAllFromTable, executeSql, executeTest } from './database';
 import { Connection } from 'oracledb';
-import { saveToFile, deployFile } from 'filemanager';
+import { saveToFile, deployFile } from './filemanager';
 
 function handler(_req: IncomingMessage, res: ServerResponse) {
   fs.readFile(__dirname + '/index.html', function(err, data) {
@@ -28,8 +28,6 @@ function handler(_req: IncomingMessage, res: ServerResponse) {
 }
 
 const app = createServer(handler);
-app.listen(80);
-
 const io = WebSocket(app);
 
 async function handleAsync<ReturnType>(
@@ -59,8 +57,8 @@ async function handleAsync<ReturnType>(
 io.on('connection', function(socket) {
   let connection: false | Connection = false;
   let connectionString: false | string = false;
-  socket.emit('connected');
   const machine = createMachine();
+  console.log('Connetced');
   socket.on('state', () => socket.emit('state', machine.getState()));
   socket.on('options', async (data: SetOptionsMessage) => {
     const conn = await handleAsync(setup, machine, socket, data);
@@ -85,3 +83,5 @@ io.on('connection', function(socket) {
     handleAsync(executeTest, machine, socket, data.func, data.parameters);
   });
 });
+
+app.listen(80, () => console.log('Server started'));

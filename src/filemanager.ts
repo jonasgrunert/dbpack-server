@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import { pack } from 'dbpack';
+import { pack } from './dbpack/index';
 import { join } from 'path';
 
 export async function saveToFile(content: string) {

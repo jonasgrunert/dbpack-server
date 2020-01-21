@@ -45,7 +45,7 @@ export async function executeTest(
     const data = await conn.execute(
       `SELECT ${func}(${params
         .map(d => (typeof d === "number" ? d : `'${d}'`))
-        .join(", ")})`
+        .join(", ")}) FROM dual`
     );
     return data;
   } catch (e) {

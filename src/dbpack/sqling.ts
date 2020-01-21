@@ -94,8 +94,8 @@ export class SQLCreator {
       verbose: false,
       emitFiles: false,
       tablename: "mlemodules",
-      name: Date.now().toString(),
       outputDir: "./dist",
+      name: "mlemodules",
       ...opt
     };
   }

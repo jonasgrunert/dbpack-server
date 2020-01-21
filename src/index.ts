@@ -79,7 +79,7 @@ io.on("connection", function(socket) {
     handleAsync(executeSql, machine, socket, "executed", connection, data.sql);
   });
   socket.on("test", (data: TestMessage) => {
-    handleAsync(executeTest, machine, socket, "tested", data.func, data.parameters);
+    handleAsync(executeTest, machine, socket, "tested", connection, data.func, data.parameters);
   });
 });
 

@@ -13,12 +13,13 @@ export async function saveToFile(content: string) {
 
 export async function deployFile({connectionString, password, user}:{connectionString:string, password:string, user:string}) {
   await pack('mle.ts', {
-    verbose: false,
+    tablename: "mlemodules",
+    name: "mlemodules",
+    verbose: true,
     emitFiles: false,
     emitStats: false,
     connectionString,
     user,
-    password,
-    name: "mleeditor"
+    password
   });
 }

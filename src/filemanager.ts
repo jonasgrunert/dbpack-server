@@ -11,11 +11,14 @@ export async function saveToFile(content: string) {
   }
 }
 
-export async function deployFile(connectionString: string) {
-  await pack(join(process.cwd(), 'mle.ts'), {
+export async function deployFile({connectionString, password, user}:{connectionString:string, password:string, user:string}) {
+  await pack('mle.ts', {
     verbose: false,
     emitFiles: false,
     emitStats: false,
     connectionString,
+    user,
+    password,
+    name: "mleeditor"
   });
 }

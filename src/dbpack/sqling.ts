@@ -1,5 +1,4 @@
 import { FunctionSignature, Type } from "./transpiling";
-import hash from "./hash";
 import { promises as fs } from "fs";
 import { BindParameters } from "oracledb";
 
@@ -95,7 +94,7 @@ export class SQLCreator {
       verbose: false,
       emitFiles: false,
       tablename: "mlemodules",
-      name: `${hash(this.src)}`,
+      name: Date.now().toString(),
       outputDir: "./dist",
       ...opt
     };

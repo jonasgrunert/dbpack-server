@@ -1,4 +1,4 @@
-import oracledb, { ConnectionAttributes, Connection } from "oracledb";
+import oracledb, { ConnectionAttributes, Connection, OUT_FORMAT_OBJECT } from "oracledb";
 
 export async function setup(options: ConnectionAttributes) {
   try {
@@ -12,7 +12,8 @@ export async function setup(options: ConnectionAttributes) {
 
 export async function getAllFromTable(conn: Connection, table: string) {
   try {
-    const data = await conn.execute(`SELECT * FROM ${table}`);
+    const select = `SELECT * FROM ${table}`;
+    const data = await conn.execute(select, [],{outFormat: OUT_FORMAT_OBJECT});
     return data;
   } catch (e) {
     console.error(e.message);
@@ -23,6 +24,7 @@ export async function getAllFromTable(conn: Connection, table: string) {
 export async function executeSql(conn: Connection, sql: string) {
   try {
     const data = await conn.execute(sql);
+    await conn.commit()
     return data;
   } catch (e) {
     console.error(e.message);

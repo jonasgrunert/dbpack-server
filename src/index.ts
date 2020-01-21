@@ -34,6 +34,7 @@ async function handleAsync<ReturnType>(
   f: (...args: Array<any>) => Promise<ReturnType>,
   machine: MachineHandler,
   socket: WebSocket.Socket,
+  status: string,
   ...args: Array<any>
 ): Promise<ReturnType | false> {
   if (machine.isPending()) {
@@ -42,12 +43,13 @@ async function handleAsync<ReturnType>(
   }
   machine.setPending();
   try {
-    const r = await f(args);
+    const r = await f(...args);
     machine.success();
-    socket.emit("success");
+    socket.emit("success", status);
     socket.emit("result", r);
     return r;
   } catch (e) {
+    console.log(e);
     machine.failure();
     socket.emit("failure", e.message);
     return false;
@@ -56,31 +58,29 @@ async function handleAsync<ReturnType>(
 
 io.on("connection", function(socket) {
   let connection: false | Connection = false;
-  let connectionString: false | string = false;
   const machine = createMachine();
   socket.on("state", () => socket.emit("state", machine.getState()));
   socket.on("options", async (data: SetOptionsMessage) => {
-    const conn = await handleAsync(setup, machine, socket, data);
+    const conn = await handleAsync(setup, machine, socket, "connected", data);
     if (conn) {
       connection = conn;
-      connectionString = data.connectionString!;
     }
   });
   socket.on("save", (data: SaveFileMessage) => {
-    handleAsync(saveToFile, machine, socket, data.file);
+    handleAsync(saveToFile, machine, socket, "saved",data.file);
   });
-  socket.on("deploy", (_data: DeployMessage) => {
-    handleAsync(deployFile, machine, socket, connectionString);
+  socket.on("deploy", (data: DeployMessage) => {
+    handleAsync(deployFile, machine, socket, "deployed", data);
   });
   socket.on("getTable", (data: GetTableMessage) => {
-    handleAsync(getAllFromTable, machine, socket, connection, data.table);
+    handleAsync(getAllFromTable, machine, socket, "gotTable", connection, data.table);
   });
   socket.on("executeSQL", (data: ExecuteSqlMessage) => {
-    handleAsync(executeSql, machine, socket, connection, data.sql);
+    handleAsync(executeSql, machine, socket, "executed", connection, data.sql);
   });
   socket.on("test", (data: TestMessage) => {
-    handleAsync(executeTest, machine, socket, data.func, data.parameters);
+    handleAsync(executeTest, machine, socket, "tested", data.func, data.parameters);
   });
 });
 
-app.listen(80, () => console.log("Server started"));
+app.listen(8080, () => console.log("Server started"));

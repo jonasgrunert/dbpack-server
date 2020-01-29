@@ -58,9 +58,11 @@ async function handleAsync<ReturnType>(
 
 io.on('connection', function(socket) {
   let connection: false | Connection = false;
+  let connectionOptions: false | SetOptionsMessage = false;
   const machine = createMachine();
   socket.on('state', () => socket.emit('state', machine.getState()));
   socket.on('options', async (data: SetOptionsMessage) => {
+    connectionOptions = data;
     const conn = await handleAsync(setup, machine, socket, 'connected', data);
     if (conn) {
       connection = conn;
@@ -69,8 +71,26 @@ io.on('connection', function(socket) {
   socket.on('save', (data: SaveFileMessage) => {
     handleAsync(saveToFile, machine, socket, 'saved', data.file);
   });
-  socket.on('deploy', (data: DeployMessage) => {
-    handleAsync(deployFile, machine, socket, 'deployed', data);
+  socket.on('deploy', async (_: DeployMessage) => {
+    await handleAsync(
+      deployFile,
+      machine,
+      socket,
+      'deployed',
+      connection,
+      connectionOptions
+    );
+
+    const conn = await handleAsync(
+      setup,
+      machine,
+      socket,
+      'connected',
+      connectionOptions
+    );
+    if (conn) {
+      connection = conn;
+    }
   });
   socket.on('getTable', (data: GetTableMessage) => {
     handleAsync(

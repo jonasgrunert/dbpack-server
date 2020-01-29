@@ -8,6 +8,7 @@ import yargs from 'yargs';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 import { InputOptions, OutputOptions } from 'rollup';
+import { Connection } from 'oracledb';
 
 interface PackOptions {
   name?: string;
@@ -22,6 +23,7 @@ interface PackOptions {
   dir?: string;
   user?: string;
   password?: string;
+  connection?: Connection;
 }
 
 export async function pack(file: string, opt: PackOptions) {
@@ -59,11 +61,13 @@ export async function pack(file: string, opt: PackOptions) {
       verbose: opt.verbose,
     }
   );
-  await Executor.init();
+  await Executor.init(opt.connection);
   await Executor.execute(SQL.srcLoad.sql, SQL.srcLoad.bindings);
   await Executor.execute(SQL.srcRegister.sql, SQL.srcRegister.bindings);
   await Promise.all(SQL.funcRegister.sql.map(r => Executor.execute(r)));
   console.timeEnd(mark);
+  await Executor.connection.commit();
+  return;
 }
 
 async function loadConfig(path: string | false) {

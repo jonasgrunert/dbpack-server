@@ -1,6 +1,6 @@
-import { createServer, IncomingMessage, ServerResponse } from "http";
-import WebSocket from "socket.io";
-import fs from "fs";
+import { createServer, IncomingMessage, ServerResponse } from 'http';
+import WebSocket from 'socket.io';
+import fs from 'fs';
 
 import {
   GetTableMessage,
@@ -9,18 +9,18 @@ import {
   ExecuteSqlMessage,
   SaveFileMessage,
   DeployMessage,
-  TestMessage
-} from "./Messages";
-import { createMachine } from "./statemachine";
-import { setup, getAllFromTable, executeSql, executeTest } from "./database";
-import { Connection } from "oracledb";
-import { saveToFile, deployFile } from "./filemanager";
+  TestMessage,
+} from './Messages';
+import { createMachine } from './statemachine';
+import { setup, getAllFromTable, executeSql, executeTest } from './database';
+import { Connection } from 'oracledb';
+import { saveToFile, deployFile } from './filemanager';
 
 function handler(_req: IncomingMessage, res: ServerResponse) {
-  fs.readFile(__dirname + "/index.html", function(err, data) {
+  fs.readFile(__dirname + '/index.html', function(err, data) {
     if (err) {
       res.writeHead(500);
-      return res.end("Error loading index.html");
+      return res.end('Error loading index.html');
     }
     res.writeHead(200);
     res.end(data);
@@ -38,49 +38,65 @@ async function handleAsync<ReturnType>(
   ...args: Array<any>
 ): Promise<ReturnType | false> {
   if (machine.isPending()) {
-    socket.emit("busy");
+    socket.emit('busy');
     return false;
   }
   machine.setPending();
   try {
     const r = await f(...args);
     machine.success();
-    socket.emit("success", status);
-    socket.emit("result", r);
+    socket.emit('success', status);
+    socket.emit('result', r);
     return r;
   } catch (e) {
     console.log(e);
     machine.failure();
-    socket.emit("failure", e.message);
+    socket.emit('failure', e.message);
     return false;
   }
 }
 
-io.on("connection", function(socket) {
+io.on('connection', function(socket) {
   let connection: false | Connection = false;
   const machine = createMachine();
-  socket.on("state", () => socket.emit("state", machine.getState()));
-  socket.on("options", async (data: SetOptionsMessage) => {
-    const conn = await handleAsync(setup, machine, socket, "connected", data);
+  socket.on('state', () => socket.emit('state', machine.getState()));
+  socket.on('options', async (data: SetOptionsMessage) => {
+    const conn = await handleAsync(setup, machine, socket, 'connected', data);
     if (conn) {
       connection = conn;
     }
   });
-  socket.on("save", (data: SaveFileMessage) => {
-    handleAsync(saveToFile, machine, socket, "saved",data.file);
+  socket.on('save', (data: SaveFileMessage) => {
+    handleAsync(saveToFile, machine, socket, 'saved', data.file);
   });
-  socket.on("deploy", (data: DeployMessage) => {
-    handleAsync(deployFile, machine, socket, "deployed", data);
+  socket.on('deploy', (data: DeployMessage) => {
+    handleAsync(deployFile, machine, socket, 'deployed', data);
   });
-  socket.on("getTable", (data: GetTableMessage) => {
-    handleAsync(getAllFromTable, machine, socket, "gotTable", connection, data.table);
+  socket.on('getTable', (data: GetTableMessage) => {
+    handleAsync(
+      getAllFromTable,
+      machine,
+      socket,
+      'gotTable',
+      connection,
+      data.table
+    );
   });
-  socket.on("executeSQL", (data: ExecuteSqlMessage) => {
-    handleAsync(executeSql, machine, socket, "executed", connection, data.sql);
+  socket.on('executeSQL', (data: ExecuteSqlMessage) => {
+    handleAsync(executeSql, machine, socket, 'executed', connection, data.sql);
   });
-  socket.on("test", (data: TestMessage) => {
-    handleAsync(executeTest, machine, socket, "tested", connection, data.func, data.parameters);
+  socket.on('test', (data: TestMessage) => {
+    handleAsync(
+      executeTest,
+      machine,
+      socket,
+      'tested',
+      data.id,
+      connection,
+      data.func,
+      data.parameters
+    );
   });
 });
 
-app.listen(8080, () => console.log("Server started"));
+app.listen(8080, () => console.log('Server started'));

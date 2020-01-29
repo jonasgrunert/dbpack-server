@@ -11,6 +11,7 @@ import {
   Signature,
   isIdentifier,
   SyntaxKind,
+  ModuleKind,
 } from 'typescript';
 import { promises as fs } from 'fs';
 import { join } from 'path';
@@ -90,11 +91,16 @@ export class Transpiler {
   ) {
     this.program = createProgram([filename], {
       outDir: join(process.cwd(), 'mledist'),
+      module: ModuleKind.ESNext,
       ...tsOptions,
     });
     this.checker = this.program.getTypeChecker();
     this.options = { verbose: false, emitFiles: false, ...transpilerOptions };
-    this.indexFile = join(process.cwd(), "mledist", filename.replace('ts', 'js'));
+    this.indexFile = join(
+      process.cwd(),
+      'mledist',
+      filename.replace('ts', 'js')
+    );
   }
 
   get OutputFile() {

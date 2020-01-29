@@ -32,3 +32,5 @@ export interface TestMessage {
   func: string;
   parameters: Array<string | number>;
 }
+
+export type TestsMessage = Array<TestMessage>;

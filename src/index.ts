@@ -10,9 +10,17 @@ import {
   SaveFileMessage,
   DeployMessage,
   TestMessage,
+  TestsMessage,
 } from './Messages';
 import { createMachine } from './statemachine';
-import { setup, getAllFromTable, executeSql, executeTest } from './database';
+import {
+  setup,
+  getAllFromTable,
+  executeSql,
+  executeTest,
+  getTypes,
+  multipleTests,
+} from './database';
 import { Connection } from 'oracledb';
 import { saveToFile, deployFile } from './filemanager';
 
@@ -45,8 +53,7 @@ async function handleAsync<ReturnType>(
   try {
     const r = await f(...args);
     machine.success();
-    socket.emit('success', status);
-    socket.emit('result', r);
+    socket.emit('result', r, status);
     return r;
   } catch (e) {
     console.log(e);
@@ -92,6 +99,9 @@ io.on('connection', function(socket) {
       connection = conn;
     }
   });
+  socket.on('getTypes', () => {
+    handleAsync(getTypes, machine, socket, 'gotTypes', connection);
+  });
   socket.on('getTable', (data: GetTableMessage) => {
     handleAsync(
       getAllFromTable,
@@ -115,6 +125,16 @@ io.on('connection', function(socket) {
       connection,
       data.func,
       data.parameters
+    );
+  });
+  socket.on('multipleTests', (data: TestsMessage) => {
+    handleAsync(
+      multipleTests,
+      machine,
+      socket,
+      'multipleTests',
+      connection,
+      data
     );
   });
 });

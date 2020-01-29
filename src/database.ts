@@ -4,6 +4,8 @@ import oracledb, {
   OUT_FORMAT_OBJECT,
 } from 'oracledb';
 
+oracledb.fetchAsString = [oracledb.CLOB];
+
 export async function setup(options: ConnectionAttributes) {
   try {
     const conn = await oracledb.getConnection(options);
@@ -67,5 +69,45 @@ export async function executeTest(
         e.message
       }`
     );
+  }
+}
+
+export async function getTypes(connection: Connection) {
+  const res = await connection.execute(
+    "SELECT types FROM mlemodules WHERE module_id=(SELECT MAX(module_id) FROM mlemodules WHERE name='mlemodules')"
+  );
+  if (res.rows && res.rows[0] && res.rows[0]) {
+    if (!Array.isArray(res.rows[0])) throw new Error('No types found');
+    return JSON.parse(res.rows[0][0]);
+  } else {
+    throw new Error('Unable to retrieve types.');
+  }
+}
+
+export async function multipleTests(
+  connection: Connection,
+  tests: Array<{ id: string; func: string; params: Array<string | number> }>
+) {
+  try {
+    const res = await Promise.all(
+      tests.map(t =>
+        connection.execute(
+          `SELECT ${t.func}(${t.params
+            .map(d => (typeof d === 'number' ? d : `'${d}'`))
+            .join(', ')}) FROM dual`
+        )
+      )
+    );
+    return res.map(({ rows }, i) => {
+      if (rows) {
+        const col = rows[0] as Array<string>;
+        return { id: i, result: col[0] };
+      } else {
+        throw new Error('No rows available');
+      }
+    });
+  } catch (e) {
+    console.error(e.message);
+    throw new Error(`Failure while testing multiple cases;`);
   }
 }

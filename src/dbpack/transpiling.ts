@@ -91,6 +91,7 @@ export class Transpiler {
   ) {
     this.program = createProgram([filename], {
       outDir: join(process.cwd(), 'mledist'),
+      downlevelIteration: true,
       module: ModuleKind.ESNext,
       ...tsOptions,
     });

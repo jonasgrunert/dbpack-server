@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import { pack } from './dbpack/index';
 import { join } from 'path';
+import { Connection } from 'oracledb';
 
 export async function saveToFile(content: string) {
   try {
@@ -11,15 +12,18 @@ export async function saveToFile(content: string) {
   }
 }
 
-export async function deployFile({connectionString, password, user}:{connectionString:string, password:string, user:string}) {
+export async function deployFile(connection: Connection, {connectionString, password, user}:{connectionString:string, password:string, user:string}) {
   await pack('mle.ts', {
     tablename: "mlemodules",
     name: "mlemodules",
     verbose: true,
-    emitFiles: false,
+    emitFiles: true,
     emitStats: false,
     connectionString,
     user,
-    password
+    password,
+    connection: connection,
+    dir: "mledist"
   });
+  return; 
 }

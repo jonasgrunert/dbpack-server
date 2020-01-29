@@ -46,8 +46,13 @@ export class SqlLoader {
     throw new Error('No connection established. Please call init first.');
   }
 
-  async init() {
-    this._connection = await getConnection(this.connectionOptions);
+  async init(connection?: Connection) {
+    if(!connection) {
+      this._connection = await getConnection(this.connectionOptions)
+    } else {
+      console.log("Using established connection");
+      this._connection = connection;
+    } 
     //prettier-ignore
     const result = await this._connection.execute(`SELECT COUNT(TABLE_NAME) FROM USER_TABLES WHERE TABLE_NAME=:name`, [this.tablename.toUpperCase()]);
     this.tableExists = +result.rows! + [0][0] != 0;
@@ -69,6 +74,7 @@ export class SqlLoader {
       } else {
         res = await this._connection.execute(sql);
       }
+      await this._connection.commit();
       if (res.rowsAffected) {
         this.log(
           `Loaded ${res.rowsAffected} row${res.rowsAffected !== 0 && 's'}`
@@ -77,5 +83,6 @@ export class SqlLoader {
         this.log(`Completed call ${sql}`);
       }
     }
+    return;
   }
 }

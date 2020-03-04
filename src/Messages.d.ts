@@ -25,8 +25,6 @@ export interface SaveFileMessage {
   file: string;
 }
 
-export interface DeployMessage extends SetOptionsMessage {}
-
 export interface TestMessage {
   id: string;
   func: string;

@@ -8,7 +8,6 @@ import {
   MachineHandler,
   ExecuteSqlMessage,
   SaveFileMessage,
-  DeployMessage,
   TestMessage,
   TestsMessage,
 } from './Messages';
@@ -22,7 +21,7 @@ import {
   multipleTests,
 } from './database';
 import { Connection } from 'oracledb';
-import { saveToFile, deployFile } from './filemanager';
+import { saveToFile, deployFile, readFile } from './filemanager';
 
 function handler(_req: IncomingMessage, res: ServerResponse) {
   fs.readFile(__dirname + '/index.html', function(err, data) {
@@ -78,7 +77,10 @@ io.on('connection', function(socket) {
   socket.on('save', (data: SaveFileMessage) => {
     handleAsync(saveToFile, machine, socket, 'saved', data.file);
   });
-  socket.on('deploy', async (_: DeployMessage) => {
+  socket.on('read', () => {
+    handleAsync(readFile, machine, socket, 'read');
+  });
+  socket.on('deploy', async () => {
     await handleAsync(
       deployFile,
       machine,

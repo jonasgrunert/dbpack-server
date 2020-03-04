@@ -1,8 +1,4 @@
-import oracledb, {
-  ConnectionAttributes,
-  Connection,
-  OUT_FORMAT_OBJECT,
-} from 'oracledb';
+import oracledb, { ConnectionAttributes, Connection } from 'oracledb';
 
 oracledb.fetchAsString = [oracledb.CLOB];
 
@@ -19,9 +15,7 @@ export async function setup(options: ConnectionAttributes) {
 export async function getAllFromTable(conn: Connection, table: string) {
   try {
     const select = `SELECT * FROM ${table}`;
-    const data = await conn.execute(select, [], {
-      outFormat: OUT_FORMAT_OBJECT,
-    });
+    const data = await conn.execute(select);
     return data;
   } catch (e) {
     console.error(e.message);
@@ -101,7 +95,7 @@ export async function multipleTests(
     return res.map(({ rows }, i) => {
       if (rows) {
         const col = rows[0] as Array<string>;
-        return { id: i, result: col[0] };
+        return { id: tests[i].id, result: col[0] };
       } else {
         throw new Error('No rows available');
       }

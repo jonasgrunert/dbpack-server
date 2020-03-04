@@ -12,10 +12,28 @@ export async function saveToFile(content: string) {
   }
 }
 
-export async function deployFile(connection: Connection, {connectionString, password, user}:{connectionString:string, password:string, user:string}) {
+export async function readFile() {
+  try {
+    return fs.readFile(join(process.cwd(), 'mle.ts'), {
+      encoding: 'UTF-8',
+    });
+  } catch (e) {
+    console.error(e.message);
+    throw new Error('Error on saving contents to file');
+  }
+}
+
+export async function deployFile(
+  connection: Connection,
+  {
+    connectionString,
+    password,
+    user,
+  }: { connectionString: string; password: string; user: string }
+) {
   await pack('mle.ts', {
-    tablename: "mlemodules",
-    name: "mlemodules",
+    tablename: 'mlemodules',
+    name: 'mlemodules',
     verbose: true,
     emitFiles: true,
     emitStats: false,
@@ -23,7 +41,7 @@ export async function deployFile(connection: Connection, {connectionString, pass
     user,
     password,
     connection: connection,
-    dir: "mledist"
+    dir: 'mledist',
   });
-  return; 
+  return;
 }

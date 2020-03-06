@@ -1,0 +1,29 @@
+Abstarct for MLE Development in the browser
+
+Building upon the experiences from the last seminar (Polyglot Programming), I
+found an interest in Multi Langunage Engine usage in a database. One aspect
+that the experience of development for MLE made hard was the complex and slow
+deployment process. In order to achieve faster feedback cycles a tooling was
+built that allows faster deployment of functins written in Typescript. While
+a very narrow CLI tool was developed during the last seminar, it did not
+satisfy any of the needs. Deployments still took minutes instead of seconds and
+often would fail entirely without sufficient ways to debug. All the while there
+were multiple tools to view the data in table form, execute sql queries, write
+and test the code. This lead to a lot of context switches and a notorius
+problem with Database Connection sessions. Whenever a new program was deployed
+all sessions had to be update to reflect the changes. The same had to be done
+when the data got changed. This often lead to stale results.
+
+Taking the slack up this seminar the first thing was to perfectionize the CLI
+tool and decouple it from the actual CLI. Then a multitude of tools were
+necessary to ensure all aspects of developing code, which will run inside of a
+database can be effeciently developed. The server which came out of those ideas
+handles the deployemnt and execution MLE code, as well as handling the database
+sessions. This leads to a very UI driven approach, where the complete
+development may happen in Lively.
+
+For future endeavours in this space there are two sides which may be further
+developed. On the one hand there are several MLE advanced features, which did
+not make it into the server or are included, because they are complex corner
+cases. On the other hande the current server and UI could be more tightly
+integrated into Lively, and use more inherent platform features.

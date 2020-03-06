@@ -1,27 +1,33 @@
-# TSDX Bootstrap
+# MLE Development Environmant in Lively
 
-This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
+This is the backend service to make the mle development system work. It works with websockets to communicate with the frontend.
 
-## Local Development
+![MLE IDE](./mle-ide.png)
 
-Below is a list of commands you will probably find useful.
+### Installation
 
-### `npm start` or `yarn start`
+I recommend the installation using degit. This will create a folder called `dbpack-server`.
 
-Runs the project in development/watch mode. Your project will be rebuilt upon changes. TSDX has a special logger for you convenience. Error messages are pretty printed and formatted for compatibility VS Code's Problems tab.
+```
+npx degit "jonasgrunert/dbpack-server" "dbpack-server"
+```
 
-<img src="https://user-images.githubusercontent.com/4060187/52168303-574d3a00-26f6-11e9-9f3b-71dbec9ebfcb.gif" width="600" />
+If that does not work clone the repository. Next up you have to install the dependencies using yarn or npm and building and starting the server:
 
-Your library will be rebuilt if you make edits.
+```bash
+cd dbpack-server
+# Yarn
+yarn
+yarn build
+# Or npm
+npm i
+npm run build
+# Run the server
+node dist/index.ts
+```
 
-### `npm run build` or `yarn build`
+Now you may visit the [Lively Kernel](https://lively-kernel.org/lively4/lively4-core/start.html) and open the IDE via the context menu via `Tools > MLE IDE`. You may confirm the default URL in the popup and start your journey.
 
-Bundles the package to the `dist` folder.
-The package is optimized and bundled with Rollup into multiple formats (CommonJS, UMD, and ES Module).
+### Remarks
 
-<img src="https://user-images.githubusercontent.com/4060187/52168322-a98e5b00-26f6-11e9-8cf6-222d716b75ef.gif" width="600" />
-
-### `npm test` or `yarn test`
-
-Runs the test watcher (Jest) in an interactive mode.
-By default, runs tests related to files changed since the last commit.
+At the moment it connects to a default instance hosted by the HPI. This is configured in the frontend and may be changed in the future. For future workshops the big chunk of the implementation work lies in the dbpack folder, where a complete Packing Tool resides. The UI Pieces are fairly reusable as well as the server interactions. For a following seminar I would recommend leaning heavier into the lively-core.

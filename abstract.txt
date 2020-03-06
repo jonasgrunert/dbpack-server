@@ -1,4 +1,4 @@
-Abstarct for MLE Development in the browser
+Abstract for MLE Development in the browser
 
 Building upon the experiences from the last seminar (Polyglot Programming), I
 found an interest in Multi Langunage Engine usage in a database. One aspect

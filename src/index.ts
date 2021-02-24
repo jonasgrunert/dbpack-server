@@ -19,11 +19,12 @@ import {
   executeTest,
   getTypes,
   multipleTests,
+  benchmark,
 } from './database';
 import { Connection } from 'oracledb';
 import { saveToFile, deployFile, readFile } from './filemanager';
 
-function handler(_req: IncomingMessage, res: ServerResponse) {
+function handler(_req: IncomingMessage, res: ServerResponse): void {
   fs.readFile(__dirname + '/index.html', function(err, data) {
     if (err) {
       res.writeHead(500);
@@ -138,6 +139,9 @@ io.on('connection', function(socket) {
       connection,
       data
     );
+  });
+  socket.on('benchmark', () => {
+    handleAsync(benchmark, machine, socket, 'benchmark', connection);
   });
 });
 

@@ -1,6 +1,6 @@
-import { FunctionSignature, Type } from "./transpiling";
-import { promises as fs } from "fs";
-import { BindParameters } from "oracledb";
+import { FunctionSignature, Type } from './transpiling';
+import { promises as fs } from 'fs';
+import { BindParameters } from 'oracledb';
 
 interface SQLOptions {
   verbose: boolean;
@@ -15,56 +15,56 @@ export interface SQLExec {
   bindings?: BindParameters;
 }
 
-const escapeDots = (str: string): string => str.replace(/\./, "\\.");
+const escapeDots = (str: string): string => str.replace(/\./, '\\.');
 
 const generateParameters = ({
   name,
-  type
+  type,
 }: {
   name: string;
   type: Type;
 }): { sql: string; js: string } => {
-  let dbType = "VARCHAR2";
-  let jsType = "string";
+  let dbType = 'VARCHAR2';
+  let jsType = 'string';
   switch (type) {
     case Type.number:
-      dbType = "NUMBER";
-      jsType = "number";
+      dbType = 'NUMBER';
+      jsType = 'number';
       break;
     case Type.string:
-      dbType = "VARCHAR2";
-      jsType = "string";
+      dbType = 'VARCHAR2';
+      jsType = 'string';
       break;
     case Type.none:
       throw new Error(`None cannot be the type of parameter ${name}`);
     default:
-      throw new Error("This should never happen. Please file an issue.");
+      throw new Error('This should never happen. Please file an issue.');
   }
   return { sql: `${name} IN ${dbType}`, js: `${name} ${jsType}` };
 };
 
 const generateReturnType = ({
-  returnType
+  returnType,
 }: {
   returnType: Type;
 }): { sql: string; js: string } => {
-  let dbType = "VARCHAR2";
-  let jsType = "string";
+  let dbType = 'VARCHAR2';
+  let jsType = 'string';
   switch (returnType) {
     case Type.number:
-      dbType = "NUMBER";
-      jsType = "number";
+      dbType = 'NUMBER';
+      jsType = 'number';
       break;
     case Type.string:
-      dbType = "VARCHAR2";
-      jsType = "string";
+      dbType = 'VARCHAR2';
+      jsType = 'string';
       break;
     case Type.none:
-      dbType = "";
-      jsType = "";
+      dbType = '';
+      jsType = '';
       break;
     default:
-      throw new Error("This should never happen. Please file an issue.");
+      throw new Error('This should never happen. Please file an issue.');
   }
   return { sql: dbType, js: jsType };
 };
@@ -77,7 +77,7 @@ export class SQLCreator {
   protected _srcRegister: string | false = false;
   protected _funcRegister: string[] | false = false;
 
-  private log(message: string, level: "log" | "warn" | "error" = "log") {
+  private log(message: string, level: 'log' | 'warn' | 'error' = 'log') {
     if (this.options.verbose) {
       console[level](message);
     }
@@ -93,10 +93,10 @@ export class SQLCreator {
     this.options = {
       verbose: false,
       emitFiles: false,
-      tablename: "mlemodules",
-      outputDir: "./dist",
-      name: "mlemodules",
-      ...opt
+      tablename: 'mlemodules',
+      outputDir: './dist',
+      name: 'mlemodules',
+      ...opt,
     };
   }
 
@@ -104,40 +104,32 @@ export class SQLCreator {
     if (this._srcLoad) {
       return {
         sql: `${this._srcLoad}`,
-        bindings: [this.options.name, JSON.stringify(this.types), this.src]
+        bindings: [this.options.name, JSON.stringify(this.types), this.src],
       };
     }
-    throw new Error("SrcLoad does not exist did you call generate()?");
+    throw new Error('SrcLoad does not exist did you call generate()?');
   }
 
   get srcRegister(): SQLExec {
     if (this._srcRegister) {
       return { sql: `${this._srcRegister}` };
     }
-    throw new Error("SrcRegister does not exist did you call generate()?");
+    throw new Error('SrcRegister does not exist did you call generate()?');
   }
 
   get funcRegister(): { sql: string[] } {
     if (this._funcRegister) {
       return { sql: this._funcRegister ? this._funcRegister! : [] };
     }
-    throw new Error("FuncRegister does not exist did you call generate()?");
+    throw new Error('FuncRegister does not exist did you call generate()?');
   }
 
   private generateSrcLoader() {
-    this._srcLoad = `INSERT INTO ${
-      this.options.tablename
-    } (name, types, source) VALUES (:name, :types, :src)`;
+    this._srcLoad = `INSERT INTO ${this.options.tablename} (name, types, source) VALUES (:name, :types, :src)`;
   }
 
   private generateSrcRegister() {
-    this._srcRegister = `CREATE OR REPLACE JAVASCRIPT SOURCE NAMED "${
-      this.options.name
-    }" USING CLOB SELECT source FROM ${
-      this.options.tablename
-    } WHERE module_id = (SELECT max(module_id) FROM ${
-      this.options.tablename
-    } WHERE name = '${this.options.name}');`;
+    this._srcRegister = `CREATE OR REPLACE JAVASCRIPT SOURCE NAMED "${this.options.name}" USING CLOB SELECT source FROM ${this.options.tablename} WHERE module_id = (SELECT max(module_id) FROM ${this.options.tablename} WHERE name = '${this.options.name}');`;
   }
 
   private generateFunRegister() {
@@ -145,9 +137,9 @@ export class SQLCreator {
       type.parameters.map(generateParameters)
     );
     const sqlParameters = parameters.map(p =>
-      p.length === 0 ? "" : `(${p.map(({ sql }) => sql).join(", ")})`
+      p.length === 0 ? '' : `(${p.map(({ sql }) => sql).join(', ')})`
     );
-    const jsParameters = parameters.map(p => p.map(({ js }) => js).join(", "));
+    const jsParameters = parameters.map(p => p.map(({ js }) => js).join(', '));
     const returnTypes = this.types.map(generateReturnType);
     const sqlFunc = this.types.map((type, i) =>
       type.returnType === Type.none
@@ -165,23 +157,23 @@ export class SQLCreator {
     this._funcRegister = sqlFunc;
   }
   async generate() {
-    this.log("Generating SrcLoader");
+    this.log('Generating SrcLoader');
     this.generateSrcLoader();
-    this.log("Generating SrcRegister");
+    this.log('Generating SrcRegister');
     this.generateSrcRegister();
-    this.log("Generating FuncRegitser");
+    this.log('Generating FuncRegitser');
     this.generateFunRegister();
     if (this.options.emitFiles) {
-      this.log("Writing Files out");
+      this.log('Writing Files out');
       await Promise.all([
         fs.writeFile(`${this.options.outputDir}/loader.sql`, this._srcLoad),
         fs.writeFile(`${this.options.outputDir}/source.sql`, this._srcRegister),
         fs.writeFile(
           `${this.options.outputDir}/register.sql`,
-          this._funcRegister
-        )
+          (this._funcRegister as string[]).join('\n')
+        ),
       ]);
-      this.log("Finished writing files out");
+      this.log('Finished writing files out');
     }
     return this;
   }

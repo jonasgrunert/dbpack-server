@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/camelcase */
+import { timeStamp } from 'console';
 import oracledb, { ConnectionAttributes, Connection } from 'oracledb';
+import { string } from 'yargs';
 
 oracledb.fetchAsString = [oracledb.CLOB];
 
@@ -46,14 +49,38 @@ export async function executeTest(
 ) {
   try {
     const data = await conn.execute(
-      `SELECT ${func}(${params
-        .map(d => (typeof d === 'number' ? d : `'${d}'`))
-        .join(', ')}) FROM dual`
+      `call ${func}(${params
+        .map((_, i) => `:in${i}`)
+        .join(', ')}) INTO :outVar`,
+      [
+        ...params,
+        {
+          dir: oracledb.BIND_OUT,
+          type: oracledb.CLOB,
+          maxSize: 32767,
+        },
+      ]
     );
+    const out: string = await new Promise((res, rej) => {
+      let str = '';
+      const lob = (data.outBinds as any[])[0];
+      lob.setEncoding('utf8');
+      lob.on('data', (d: string) => {
+        str += d;
+        console.log(str.length);
+      });
+      lob.on('error', (err: string) => {
+        rej(new Error(err));
+      });
+      lob.on('end', () => {
+        res(str);
+      });
+    });
+    console.log(out);
     return {
       func,
       params,
-      data,
+      data: out,
       id,
     };
   } catch (e) {
@@ -103,5 +130,66 @@ export async function multipleTests(
   } catch (e) {
     console.error(e.message);
     throw new Error(`Failure while testing multiple cases;`);
+  }
+}
+
+export async function benchmark(connection: Connection) {
+  try {
+    let result: number[] = [];
+    type Repo = { id: string; url: string };
+    const repos = await connection.execute<Repo>('SELECT * from PROJECTS', [], {
+      resultSet: true,
+    });
+    let repo: Repo;
+    while ((repo = await repos.resultSet!.getRow())) {
+      type PR = { id: string };
+      const prs = await connection.execute<PR>(
+        'SELECT * from pull_requests where head_repo_id = :id',
+        [repo.id],
+        { resultSet: true }
+      );
+      let pr: PR;
+      const times: number[] = [];
+      while ((pr = await prs.resultSet!.getRow())) {
+        type Event = { created_at: Date; action: string };
+        const events = await connection.execute<Event>(
+          'SELECT * FROM pull_request_history where_pull_request_id = :id',
+          [pr.id]
+        );
+        const time = events.rows!.reduce(
+          ({ opened, last }, { created_at, action }) => {
+            if (!opened || opened > created_at) {
+              return { opened: created_at, last };
+            }
+            if (action.startsWith('closed') || action.startsWith('merged')) {
+              if (!last || last < created_at) {
+                return { opened, last: created_at };
+              }
+            }
+            return { opened, last };
+          },
+          { opened: false, last: false } as {
+            opened: false | Date;
+            last: false | Date;
+          }
+        );
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
+        times.push(time.last - time.opened);
+      }
+      prs.resultSet!.close();
+      const avg = times.reduce((p, c) => p + c, 0) / times.length;
+      if (result.length < 10) {
+        result.push(avg);
+      } else if (result[9] < avg) {
+        result[9] = avg;
+      }
+      result = result.sort();
+    }
+    repos.resultSet!.close();
+    return result;
+  } catch (e) {
+    console.error(e.message);
+    throw new Error(`Failure while benchmarking;`);
   }
 }

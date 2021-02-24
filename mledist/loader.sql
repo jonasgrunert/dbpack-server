@@ -1,0 +1,1 @@
+INSERT INTO mlemodules (name, types, source) VALUES (:name, :types, :src)

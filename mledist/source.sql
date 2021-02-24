@@ -1,0 +1,1 @@
+CREATE OR REPLACE JAVASCRIPT SOURCE NAMED "mlemodules" USING CLOB SELECT source FROM mlemodules WHERE module_id = (SELECT max(module_id) FROM mlemodules WHERE name = 'mlemodules');

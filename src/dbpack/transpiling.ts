@@ -12,6 +12,7 @@ import {
   isIdentifier,
   SyntaxKind,
   ModuleKind,
+  ScriptTarget,
 } from 'typescript';
 import { promises as fs } from 'fs';
 import { join } from 'path';
@@ -93,6 +94,7 @@ export class Transpiler {
       outDir: join(process.cwd(), 'mledist'),
       downlevelIteration: true,
       module: ModuleKind.ESNext,
+      target: ScriptTarget.ES2015,
       ...tsOptions,
     });
     this.checker = this.program.getTypeChecker();

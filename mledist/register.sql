@@ -1,0 +1,1 @@
+CREATE OR REPLACE FUNCTION evaluate(ev IN VARCHAR2) RETURN VARCHAR2 AS LANGUAGE JAVASCRIPT NAME 'mlemodules.evaluate(ev string) return string';
